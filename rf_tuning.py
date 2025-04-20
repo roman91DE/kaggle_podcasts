@@ -17,7 +17,7 @@ from sklearn.model_selection import KFold, RandomizedSearchCV, train_test_split
 warnings.filterwarnings("ignore", message=".*ChildProcessError.*")
 
 
-test_split_size = 0.1
+test_split_size = 0.125
 # In[4]:
 
 

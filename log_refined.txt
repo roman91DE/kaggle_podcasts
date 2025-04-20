@@ -13,3 +13,4 @@ Episode_Sentiment              0.006630
 dtype: float64
 
 
+Fitting 4 folds for each of 16 candidates, totalling 64 fits
