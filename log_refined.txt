@@ -1,0 +1,1 @@
+Fitting 3 folds for each of 20 candidates, totalling 60 fits

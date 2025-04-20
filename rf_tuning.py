@@ -61,10 +61,10 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 
 param_dist = {
-    'n_estimators': [100, 125, 150, 175],
-    'max_depth': [None, 10, 15, 20, 25],
-    'min_samples_split': [2, 5, 10],
-    'min_samples_leaf': [1, 2, 4],
+    'n_estimators': [150, 160, 175, 190, 200],
+    'max_depth': [None, 30, 40, 50],
+    'min_samples_split': [2, 3, 4],
+    'min_samples_leaf': [1, 2, 3],
     'max_features': ['log2', 'sqrt']
 }
 
@@ -75,7 +75,7 @@ cv = KFold(n_splits=3, shuffle=True, random_state=42)
 random_search = RandomizedSearchCV(
     estimator=rf,
     param_distributions=param_dist,
-    n_iter=10,
+    n_iter=20,
     scoring='neg_root_mean_squared_error',
     cv=cv,
     verbose=1,
@@ -110,7 +110,7 @@ print(importances.sort_values(ascending=False))
 # In[ ]:
 
 
-model_path = Path('./models/rf_tuned_model_bundle.pkl')
+model_path = Path('./models/rf_tuned_scnd_model_bundle.pkl')
 
 
 # In[ ]:
@@ -132,5 +132,3 @@ model_bundle = {
 }
 
 joblib.dump(model_bundle, model_path)
-
-

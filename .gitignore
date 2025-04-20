@@ -1,4 +1,6 @@
 .ruff_cache/
 .venv/
+.mypy_cache/
 data/
 models/
+submissions/
