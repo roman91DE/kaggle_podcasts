@@ -4,21 +4,20 @@
 # In[2]:
 
 
-from pathlib import Path
-import joblib
 import datetime
+import warnings
+from pathlib import Path
 
+import joblib
 import pandas as pd
-from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
-from sklearn.model_selection import RandomizedSearchCV, KFold
-import numpy as np
+from sklearn.model_selection import KFold, RandomizedSearchCV, train_test_split
 
-import warnings
 warnings.filterwarnings("ignore", message=".*ChildProcessError.*")
 
 
+test_split_size = 0.1
 # In[4]:
 
 
@@ -45,15 +44,13 @@ def load_data(filename: str) -> pd.DataFrame:
 train_df = load_data("train.csv")
 
 
-
-
 # In[ ]:
 
 
 X = train_df.drop(columns=["id", "Listening_Time_minutes"])
 y = train_df["Listening_Time_minutes"]
 X_train, X_test, y_train, y_test = train_test_split(
-    X, y, test_size=0.2, random_state=42
+    X, y, test_size=test_split_size, random_state=42
 )
 
 
@@ -61,26 +58,26 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 
 param_dist = {
-    'n_estimators': [150, 160, 175, 190, 200],
-    'max_depth': [None, 30, 40, 50],
-    'min_samples_split': [2, 3, 4],
-    'min_samples_leaf': [1, 2, 3],
-    'max_features': ['log2', 'sqrt']
+    "n_estimators": [160, 180, 200, 220, 240],
+    "max_depth": [None, 26, 28, 30, 32, 34],
+    "min_samples_split": [2, 3],
+    "min_samples_leaf": [1, 2],
+    "max_features": ["sqrt"],
 }
 
 rf = RandomForestRegressor(random_state=42)
 
-cv = KFold(n_splits=3, shuffle=True, random_state=42)
+cv = KFold(n_splits=4, shuffle=True, random_state=42)
 
 random_search = RandomizedSearchCV(
     estimator=rf,
     param_distributions=param_dist,
-    n_iter=20,
-    scoring='neg_root_mean_squared_error',
+    n_iter=16,
+    scoring="neg_root_mean_squared_error",
     cv=cv,
     verbose=1,
     random_state=42,
-    n_jobs=-1
+    n_jobs=-1,
 )
 
 random_search.fit(X_train, y_train)
@@ -110,25 +107,26 @@ print(importances.sort_values(ascending=False))
 # In[ ]:
 
 
-model_path = Path('./models/rf_tuned_scnd_model_bundle.pkl')
+model_path = Path("./models/rf_tuned_thrd_model_bundle.pkl")
 
 
 # In[ ]:
 
 
 model_bundle = {
-    'model': model,
-    'metrics': {
-        'rmse': rmse,
+    "model": model,
+    "metrics": {
+        "rmse": rmse,
     },
-    "test_size": 0.2,
-    'best_params': random_search.best_params_,
-    'metadata': {
-        'trained_on': str(datetime.datetime.now()),
-        'model_type': 'RandomForestRegressor',
-        'features': list(X.columns),
-        'target': 'Listening_Time_minutes'
-    }
+    "test_size": test_split_size,
+    "best_params": random_search.best_params_,
+    "param_grid": param_dist,
+    "metadata": {
+        "trained_on": str(datetime.datetime.now()),
+        "model_type": "RandomForestRegressor",
+        "features": list(X.columns),
+        "target": "Listening_Time_minutes",
+    },
 }
 
 joblib.dump(model_bundle, model_path)
