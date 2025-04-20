@@ -48,8 +48,8 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 # === Hyperparameter Search Configuration ===
 param_dist = {
-    "n_estimators": [160, 180, 200, 220, 240],
-    "max_depth": [4, 6, 8, 10],
+    "n_estimators": [160, 180, 200, 220, 240, 260, 280, 300],
+    "max_depth": [10, 15, 20, 25],
     "learning_rate": [0.01, 0.05, 0.1, 0.2],
     "subsample": [0.6, 0.8, 1.0],
     "colsample_bytree": [0.6, 0.8, 1.0],
@@ -68,7 +68,7 @@ for i, params in enumerate(param_sampler):
         random_state=i+1,
         verbosity=0,
         tree_method="hist",
-        early_stopping_rounds=10,
+        early_stopping_rounds=30,
         eval_metric="rmse"
     )
 
@@ -100,7 +100,7 @@ print("RMSE:", rmse)
 
 # === Retrain on Full Dataset with Best Params ===
 X_train_full, X_val_final, y_train_full, y_val_final = train_test_split(X, y, test_size=0.05, random_state=42)
-final_model = XGBRegressor(**best_params, random_state=42, verbosity=0, tree_method="hist", early_stopping_rounds=10, eval_metric="rmse")
+final_model = XGBRegressor(**best_params, random_state=42, verbosity=0, tree_method="hist", early_stopping_rounds=30, eval_metric="rmse")
 final_model.fit(X_train_full, y_train_full, eval_set=[(X_val_final, y_val_final)], verbose=False)
 model = final_model
 

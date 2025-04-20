@@ -17,7 +17,7 @@ from sklearn.model_selection import KFold, RandomizedSearchCV, train_test_split
 warnings.filterwarnings("ignore", message=".*ChildProcessError.*")
 
 
-test_split_size = 0.1
+test_split_size = 0.2
 # In[4]:
 
 
@@ -58,7 +58,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 
 
 param_dist = {
-    "n_estimators": [160, 180, 200, 220, 240],
+    "n_estimators": [160, 180, 200, 220, 240, 250],
     "max_depth": [None, 26, 28, 30, 32, 34],
     "min_samples_split": [2, 3],
     "min_samples_leaf": [1, 2],
@@ -72,7 +72,7 @@ cv = KFold(n_splits=3, shuffle=True, random_state=42)
 random_search = RandomizedSearchCV(
     estimator=rf,
     param_distributions=param_dist,
-    n_iter=10,
+    n_iter=30,
     scoring="neg_root_mean_squared_error",
     cv=cv,
     verbose=1,
