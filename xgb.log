@@ -23,3 +23,15 @@ Genre                          0.030181
 Episode_Title                  0.029258
 Episode_Sentiment              0.026468
 dtype: float32
+RMSE: 12.978032682660954
+Episode_Length_minutes         0.906171
+Number_of_Ads                  0.038578
+Host_Popularity_percentage     0.009263
+Episode_Sentiment              0.007893
+Guest_Popularity_percentage    0.007190
+Episode_Title                  0.006709
+Genre                          0.006276
+Publication_Day                0.006258
+Publication_Time               0.005903
+Podcast_Name                   0.005758
+dtype: float32
