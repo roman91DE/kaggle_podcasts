@@ -1,1 +1,13 @@
 Fitting 3 folds for each of 30 candidates, totalling 90 fits
+RMSE: 12.610301943491983
+Episode_Length_minutes         0.768226
+Host_Popularity_percentage     0.051034
+Guest_Popularity_percentage    0.043004
+Episode_Title                  0.038547
+Podcast_Name                   0.029110
+Publication_Day                0.018716
+Genre                          0.017691
+Number_of_Ads                  0.015151
+Publication_Time               0.011900
+Episode_Sentiment              0.006620
+dtype: float64
