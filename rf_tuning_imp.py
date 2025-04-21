@@ -47,7 +47,7 @@ def load_data(filename: str) -> pd.DataFrame:
     return train_df
 
 
-train_df = load_data("train.csv")#.sample(n=100)
+train_df = load_data("train.csv")  # .sample(n=100)
 
 
 # In[ ]:
@@ -63,14 +63,20 @@ X_train, X_test, y_train, y_test = train_test_split(
 # In[2]:
 
 
-pipeline = Pipeline([
-    ("imputer", SimpleImputer()),
-    ("scaler", StandardScaler()),
-    ("regressor", RandomForestRegressor(random_state=42))
-])
+pipeline = Pipeline(
+    [
+        ("imputer", SimpleImputer()),
+        ("scaler", StandardScaler()),
+        ("regressor", RandomForestRegressor(random_state=42)),
+    ]
+)
 
 param_dist = {
-    "imputer": ["passthrough", SimpleImputer(strategy="mean"), SimpleImputer(strategy="median")],
+    "imputer": [
+        "passthrough",
+        SimpleImputer(strategy="mean"),
+        SimpleImputer(strategy="median"),
+    ],
     "scaler": ["passthrough", StandardScaler()],
     "regressor__n_estimators": [160, 180, 200, 220, 240, 250],
     "regressor__max_depth": [None, 26, 28, 30, 32, 34],
@@ -104,21 +110,29 @@ rmse = root_mean_squared_error(y_test, y_pred)
 print("RMSE:", rmse)
 
 # Retrain on full dataset using the best found parameters
-final_model = Pipeline([
-    ("imputer", random_search.best_params_["imputer"]),
-    ("scaler", random_search.best_params_["scaler"]),
-    ("regressor", RandomForestRegressor(
-        n_estimators=random_search.best_params_["regressor__n_estimators"],
-        max_depth=random_search.best_params_["regressor__max_depth"],
-        min_samples_split=random_search.best_params_["regressor__min_samples_split"],
-        min_samples_leaf=random_search.best_params_["regressor__min_samples_leaf"],
-        max_features=random_search.best_params_["regressor__max_features"],
-        random_state=42,
-    ))
-])
+final_model = Pipeline(
+    [
+        ("imputer", random_search.best_params_["imputer"]),
+        ("scaler", random_search.best_params_["scaler"]),
+        (
+            "regressor",
+            RandomForestRegressor(
+                n_estimators=random_search.best_params_["regressor__n_estimators"],
+                max_depth=random_search.best_params_["regressor__max_depth"],
+                min_samples_split=random_search.best_params_[
+                    "regressor__min_samples_split"
+                ],
+                min_samples_leaf=random_search.best_params_[
+                    "regressor__min_samples_leaf"
+                ],
+                max_features=random_search.best_params_["regressor__max_features"],
+                random_state=42,
+            ),
+        ),
+    ]
+)
 final_model.fit(X, y)
 model = final_model
-
 
 
 # In[ ]:

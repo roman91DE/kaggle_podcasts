@@ -47,7 +47,7 @@ def load_data(filename: str) -> pd.DataFrame:
     return train_df
 
 
-train_df = load_data("train.csv")#.sample(n=1000)
+train_df = load_data("train.csv")  # .sample(n=1000)
 
 
 # In[ ]:
