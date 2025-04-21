@@ -47,7 +47,7 @@ def load_data(filename: str) -> pd.DataFrame:
     return train_df
 
 
-train_df = load_data("train.csv").sample(n=100)
+train_df = load_data("train.csv")#.sample(n=100)
 
 X = train_df.drop(columns=["id", "Listening_Time_minutes"])
 y = train_df["Listening_Time_minutes"]
