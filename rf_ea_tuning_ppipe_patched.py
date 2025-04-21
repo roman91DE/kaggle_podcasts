@@ -2,10 +2,7 @@
 # coding: utf-8
 
 # RUN WITH:
-# caffeinate python rf_ea_tuning_simple_train_test.py | tee ea_tuned.log
-
-# In[2]:
-
+# caffeinate python rf_ea_tuning_ppipe_patched.py | tee logs/ea_pp_tuned.log
 
 import datetime
 import warnings
@@ -16,15 +13,19 @@ import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
 from sklearn.model_selection import train_test_split
+from sklearn.pipeline import Pipeline
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn_genetic import GASearchCV, ExponentialAdapter
 from sklearn_genetic.space import Integer, Categorical
+
+from optional_transformer import OptionalTransformer
 
 warnings.filterwarnings("ignore", message=".*ChildProcessError.*")
 
 
-test_split_size = 0.10
-# In[4]:
-
+test_split_size = 0.05
 
 def load_data(filename: str) -> pd.DataFrame:
     p = Path(f"./data/{filename}")
@@ -45,12 +46,7 @@ def load_data(filename: str) -> pd.DataFrame:
 
     return train_df
 
-
-train_df = load_data("train.csv")  # .sample(n=1000)
-
-
-# In[ ]:
-
+train_df = load_data("train.csv").sample(n=100)
 
 X = train_df.drop(columns=["id", "Listening_Time_minutes"])
 y = train_df["Listening_Time_minutes"]
@@ -59,26 +55,36 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
-# In[2]:
-
+pipeline = Pipeline([
+    ("imputer", OptionalTransformer()),
+    ("scaler", OptionalTransformer()),
+    ("regressor", RandomForestRegressor(random_state=42))
+])
 
 mutation_adapter = ExponentialAdapter(initial_value=0.8, end_value=0.2, adaptive_rate=0.1)
 crossover_adapter = ExponentialAdapter(initial_value=0.2, end_value=0.8, adaptive_rate=0.1)
 
 param_grid = {
-    "n_estimators": Integer(160, 280),
-    "max_depth": Integer(26, 34),
-    "min_samples_split": Integer(2, 10),
-    "min_samples_leaf": Integer(1, 5),
-    "max_features": Categorical(["sqrt", "log2", None]),
-    "bootstrap": Categorical([True, False]),
+    "imputer__transformer": Categorical([
+        None,
+        SimpleImputer(strategy="mean"),
+        SimpleImputer(strategy="median")
+    ]),
+    "scaler__transformer": Categorical([
+        None,
+        MinMaxScaler()
+    ]),
+    "regressor__n_estimators": Integer(160, 280),
+    "regressor__max_depth": Integer(26, 34),
+    "regressor__min_samples_split": Integer(2, 10),
+    "regressor__min_samples_leaf": Integer(1, 5),
+    "regressor__max_features": Categorical(["sqrt", "log2", None]),
+    "regressor__bootstrap": Categorical([True, False]),
 }
 
-rf = RandomForestRegressor(random_state=42)
-cv = 3
-
+cv = 2
 evolved_estimator = GASearchCV(
-    estimator=rf,
+    estimator=pipeline,
     cv=cv,
     scoring="neg_root_mean_squared_error",
     param_grid=param_grid,
@@ -93,35 +99,28 @@ evolved_estimator = GASearchCV(
 evolved_estimator.fit(X_train, y_train)
 model = evolved_estimator.best_estimator_
 
-
-# In[ ]:
-
-
 y_pred = model.predict(X_test)
 rmse = root_mean_squared_error(y_test, y_pred)
 print("RMSE:", rmse)
 
 # Retrain on full dataset using the best found parameters
-final_model = RandomForestRegressor(**evolved_estimator.best_params_, random_state=42)
+final_model = Pipeline([
+    ("imputer", OptionalTransformer(evolved_estimator.best_params_["imputer__transformer"])),
+    ("scaler", OptionalTransformer(evolved_estimator.best_params_["scaler__transformer"])),
+    ("regressor", RandomForestRegressor(
+        n_estimators=evolved_estimator.best_params_["regressor__n_estimators"],
+        max_depth=evolved_estimator.best_params_["regressor__max_depth"],
+        min_samples_split=evolved_estimator.best_params_["regressor__min_samples_split"],
+        min_samples_leaf=evolved_estimator.best_params_["regressor__min_samples_leaf"],
+        max_features=evolved_estimator.best_params_["regressor__max_features"],
+        bootstrap=evolved_estimator.best_params_["regressor__bootstrap"],
+        random_state=42
+    ))
+])
 final_model.fit(X, y)
 model = final_model
 
-
-# In[ ]:
-
-
-importances = pd.Series(model.feature_importances_, index=X.columns)
-print(importances.sort_values(ascending=False))
-
-
-# In[ ]:
-
-
-model_path = Path("./models/rf_ga_tuned_fst_model_simple_train_test_bundle.pkl")
-
-
-# In[ ]:
-
+model_path = Path("./models/rf_ga_tuned_fst_model_with_pipeline.pkl")
 
 model_bundle = {
     "model": model,
@@ -133,7 +132,7 @@ model_bundle = {
     "param_grid": param_grid,
     "metadata": {
         "trained_on": str(datetime.datetime.now()),
-        "model_type": "RandomForestRegressor",
+        "model_type": "Pipeline(RandomForestRegressor)",
         "features": list(X.columns),
         "target": "Listening_Time_minutes",
     },

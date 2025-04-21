@@ -1,0 +1,18 @@
+gen	nevals	fitness 	fitness_std	fitness_max	fitness_min
+0  	6     	-14.5593	1.68542    	-12.8904   	-16.8486   
+1  	7     	-12.9075	0.0164683  	-12.8904   	-12.9297   
+2  	8     	-12.8971	0.0205701  	-12.8577   	-12.9277   
+3  	8     	-12.8883	0.0137559  	-12.8577   	-12.8965   
+4  	9     	-12.8695	0.0166255  	-12.8577   	-12.893    
+RMSE: 12.574443275895302
+Episode_Length_minutes         0.789700
+Host_Popularity_percentage     0.047163
+Guest_Popularity_percentage    0.040185
+Episode_Title                  0.034510
+Podcast_Name                   0.025847
+Publication_Day                0.016421
+Genre                          0.015486
+Number_of_Ads                  0.014751
+Publication_Time               0.010328
+Episode_Sentiment              0.005609
+dtype: float64
