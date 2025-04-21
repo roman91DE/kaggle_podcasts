@@ -1,7 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# python rf_ea_tuning.py | tee ea_tuned.log
+# RUN WITH:
+# caffeinate python rf_ea_tuning.py | tee ea_tuned.log
 
 # In[2]:
 
@@ -46,7 +47,7 @@ def load_data(filename: str) -> pd.DataFrame:
     return train_df
 
 
-train_df = load_data("train.csv")#.sample(n=100)
+train_df = load_data("train.csv")  # .sample(n=100)
 
 
 # In[ ]:
@@ -62,8 +63,12 @@ X_train, X_test, y_train, y_test = train_test_split(
 # In[2]:
 
 
-mutation_adapter = ExponentialAdapter(initial_value=0.9, end_value=0.1, adaptive_rate=0.1)
-crossover_adapter = ExponentialAdapter(initial_value=0.1, end_value=0.8, adaptive_rate=0.1)
+mutation_adapter = ExponentialAdapter(
+    initial_value=0.9, end_value=0.1, adaptive_rate=0.1
+)
+crossover_adapter = ExponentialAdapter(
+    initial_value=0.1, end_value=0.8, adaptive_rate=0.1
+)
 
 param_grid = {
     "n_estimators": Integer(160, 280),
@@ -71,7 +76,7 @@ param_grid = {
     "min_samples_split": Integer(2, 10),
     "min_samples_leaf": Integer(1, 5),
     "max_features": Categorical(["sqrt", "log2", None]),
-    "bootstrap": Categorical([True, False])
+    "bootstrap": Categorical([True, False]),
 }
 
 rf = RandomForestRegressor(random_state=42)
@@ -131,7 +136,7 @@ model_bundle = {
     "test_size": test_split_size,
     "best_params": evolved_estimator.best_params_,
     "param_grid": param_grid,
-    "nfolds" : k_fold,
+    "nfolds": k_fold,
     "metadata": {
         "trained_on": str(datetime.datetime.now()),
         "model_type": "RandomForestRegressor",
