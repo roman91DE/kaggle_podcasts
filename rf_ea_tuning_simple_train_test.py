@@ -25,6 +25,7 @@ warnings.filterwarnings("ignore", message=".*ChildProcessError.*")
 # Define how much of the data will be used as the test set
 test_split_size = 0.10
 
+
 def load_data(filename: str) -> pd.DataFrame:
     # Load the data and convert text categories into numbers
     p = Path(f"./data/{filename}")
@@ -34,13 +35,18 @@ def load_data(filename: str) -> pd.DataFrame:
 
     # Convert categorical columns to numeric codes
     train_df["Genre"] = train_df.Genre.astype("category").cat.codes
-    train_df["Episode_Sentiment"] = train_df.Episode_Sentiment.astype("category").cat.codes
+    train_df["Episode_Sentiment"] = train_df.Episode_Sentiment.astype(
+        "category"
+    ).cat.codes
     train_df["Publication_Day"] = train_df.Publication_Day.astype("category").cat.codes
-    train_df["Publication_Time"] = train_df.Publication_Time.astype("category").cat.codes
+    train_df["Publication_Time"] = train_df.Publication_Time.astype(
+        "category"
+    ).cat.codes
     train_df["Episode_Title"] = train_df.Episode_Title.astype("category").cat.codes
     train_df["Podcast_Name"] = train_df.Podcast_Name.astype("category").cat.codes
 
     return train_df
+
 
 # Load training data
 train_df = load_data("train.csv")
@@ -55,17 +61,23 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # These adapters adjust mutation/crossover rates during evolution
-mutation_adapter = ExponentialAdapter(initial_value=0.8, end_value=0.2, adaptive_rate=0.1)
-crossover_adapter = ExponentialAdapter(initial_value=0.2, end_value=0.8, adaptive_rate=0.1)
+mutation_adapter = ExponentialAdapter(
+    initial_value=0.8, end_value=0.2, adaptive_rate=0.1
+)
+crossover_adapter = ExponentialAdapter(
+    initial_value=0.2, end_value=0.8, adaptive_rate=0.1
+)
 
 # Define the hyperparameter search space for the Random Forest
 param_grid = {
     "n_estimators": Integer(160, 280),  # number of trees
-    "max_depth": Integer(26, 34),       # how deep trees can grow
+    "max_depth": Integer(26, 34),  # how deep trees can grow
     "min_samples_split": Integer(2, 10),  # minimum samples to split a node
-    "min_samples_leaf": Integer(1, 5),    # minimum samples at a leaf node
-    "max_features": Categorical(["sqrt", "log2", None]),  # features to consider at each split
-    "bootstrap": Categorical([True, False]),              # whether to bootstrap samples
+    "min_samples_leaf": Integer(1, 5),  # minimum samples at a leaf node
+    "max_features": Categorical(
+        ["sqrt", "log2", None]
+    ),  # features to consider at each split
+    "bootstrap": Categorical([True, False]),  # whether to bootstrap samples
 }
 
 # Define the model and GA search configuration
@@ -80,8 +92,8 @@ evolved_estimator = GASearchCV(
     param_grid=param_grid,
     n_jobs=-1,
     verbose=True,
-    population_size=10,   # number of models per generation
-    generations=6,        # number of generations to evolve
+    population_size=10,  # number of models per generation
+    generations=6,  # number of generations to evolve
     mutation_probability=mutation_adapter,
     crossover_probability=crossover_adapter,
 )

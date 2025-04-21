@@ -12,13 +12,13 @@ import joblib
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
-from sklearn.model_selection import train_test_split, StratifiedKFold
+from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
 from sklearn_genetic import GASearchCV, ExponentialAdapter
 from sklearn_genetic.space import Integer, Categorical, Continuous
-from sklearn_genetic.callbacks import ProgressBar, ConsecutiveStopping, LogbookSaver, TimerStopping
+from sklearn_genetic.callbacks import ProgressBar, LogbookSaver, ConsecutiveStopping
 
 from optional_transformer import OptionalTransformer
 
@@ -48,7 +48,7 @@ def load_data(filename: str) -> pd.DataFrame:
     return train_df
 
 
-train_df = load_data("train.csv")#.sample(n=100)
+train_df = load_data("train.csv")  # .sample(n=100)
 
 X = train_df.drop(columns=["id", "Listening_Time_minutes"])
 y = train_df["Listening_Time_minutes"]
@@ -65,21 +65,27 @@ pipeline = Pipeline(
     ]
 )
 
-mutation_adapter = ExponentialAdapter(initial_value=0.8, end_value=0.2, adaptive_rate=0.1)
-crossover_adapter = ExponentialAdapter(initial_value=0.2, end_value=0.8, adaptive_rate=0.1)
+mutation_adapter = ExponentialAdapter(
+    initial_value=0.8, end_value=0.2, adaptive_rate=0.1
+)
+crossover_adapter = ExponentialAdapter(
+    initial_value=0.2, end_value=0.8, adaptive_rate=0.1
+)
 
 param_grid = {
     "imputer__transformer": Categorical(
         [None, SimpleImputer(strategy="mean"), SimpleImputer(strategy="median")]
     ),
     "scaler__transformer": Categorical([None, MinMaxScaler()]),
-    "regressor__n_estimators": Integer(150, 275),
+    "regressor__n_estimators": Integer(200, 300),
     "regressor__max_depth": Integer(20, 30),
     "regressor__min_samples_split": Integer(2, 12),
     "regressor__min_samples_leaf": Integer(1, 10),
     "regressor__max_features": Categorical(["sqrt", "log2", None]),
     "regressor__bootstrap": Categorical([True, False]),
-    'regressor__min_weight_fraction_leaf': Continuous(0.01, 0.5, distribution='log-uniform')
+    "regressor__min_weight_fraction_leaf": Continuous(
+        0.01, 0.5, distribution="log-uniform"
+    ),
 }
 
 
@@ -92,19 +98,18 @@ evolved_estimator = GASearchCV(
     param_grid=param_grid,
     n_jobs=-1,
     verbose=True,
-    population_size=10,
-    generations=10,
+    population_size=24,
+    generations=8,
     mutation_probability=mutation_adapter,
     crossover_probability=crossover_adapter,
-    
 )
 
-cbs=[
-        ProgressBar(),
-        LogbookSaver("./logs/deap_logbooks/ga_rf_opt_pp.pkl"),
-        ConsecutiveStopping(generations=1, metric='fitness'),
-        TimerStopping(total_seconds=60*60*2)
-    ]
+cbs = [
+    ProgressBar(),
+    LogbookSaver("./logs/deap_logbooks/ga_rf_opt_pp.pkl"),
+    ConsecutiveStopping(generations=2, metric='fitness'),
+    # TimerStopping(total_seconds=60*60*2)
+]
 
 evolved_estimator.fit(X_train, y_train, callbacks=cbs)
 model = evolved_estimator.best_estimator_
@@ -138,6 +143,9 @@ final_model = Pipeline(
                 max_features=evolved_estimator.best_params_["regressor__max_features"],
                 bootstrap=evolved_estimator.best_params_["regressor__bootstrap"],
                 random_state=42,
+                min_weight_fraction_leaf=evolved_estimator.best_params_[
+                    "regressor__min_weight_fraction_leaf"
+                ],
             ),
         ),
     ]
