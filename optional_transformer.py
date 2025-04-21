@@ -2,6 +2,7 @@
 
 from sklearn.base import BaseEstimator, TransformerMixin
 
+
 class OptionalTransformer(BaseEstimator, TransformerMixin):
     def __init__(self, transformer=None):
         self.transformer = transformer

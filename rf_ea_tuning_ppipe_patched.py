@@ -16,7 +16,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.preprocessing import MinMaxScaler
-from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn_genetic import GASearchCV, ExponentialAdapter
 from sklearn_genetic.space import Integer, Categorical
 
@@ -26,6 +25,7 @@ warnings.filterwarnings("ignore", message=".*ChildProcessError.*")
 
 
 test_split_size = 0.05
+
 
 def load_data(filename: str) -> pd.DataFrame:
     p = Path(f"./data/{filename}")
@@ -46,6 +46,7 @@ def load_data(filename: str) -> pd.DataFrame:
 
     return train_df
 
+
 train_df = load_data("train.csv").sample(n=100)
 
 X = train_df.drop(columns=["id", "Listening_Time_minutes"])
@@ -55,25 +56,26 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 
-pipeline = Pipeline([
-    ("imputer", OptionalTransformer()),
-    ("scaler", OptionalTransformer()),
-    ("regressor", RandomForestRegressor(random_state=42))
-])
+pipeline = Pipeline(
+    [
+        ("imputer", OptionalTransformer()),
+        ("scaler", OptionalTransformer()),
+        ("regressor", RandomForestRegressor(random_state=42)),
+    ]
+)
 
-mutation_adapter = ExponentialAdapter(initial_value=0.8, end_value=0.2, adaptive_rate=0.1)
-crossover_adapter = ExponentialAdapter(initial_value=0.2, end_value=0.8, adaptive_rate=0.1)
+mutation_adapter = ExponentialAdapter(
+    initial_value=0.8, end_value=0.2, adaptive_rate=0.1
+)
+crossover_adapter = ExponentialAdapter(
+    initial_value=0.2, end_value=0.8, adaptive_rate=0.1
+)
 
 param_grid = {
-    "imputer__transformer": Categorical([
-        None,
-        SimpleImputer(strategy="mean"),
-        SimpleImputer(strategy="median")
-    ]),
-    "scaler__transformer": Categorical([
-        None,
-        MinMaxScaler()
-    ]),
+    "imputer__transformer": Categorical(
+        [None, SimpleImputer(strategy="mean"), SimpleImputer(strategy="median")]
+    ),
+    "scaler__transformer": Categorical([None, MinMaxScaler()]),
     "regressor__n_estimators": Integer(160, 280),
     "regressor__max_depth": Integer(26, 34),
     "regressor__min_samples_split": Integer(2, 10),
@@ -104,19 +106,34 @@ rmse = root_mean_squared_error(y_test, y_pred)
 print("RMSE:", rmse)
 
 # Retrain on full dataset using the best found parameters
-final_model = Pipeline([
-    ("imputer", OptionalTransformer(evolved_estimator.best_params_["imputer__transformer"])),
-    ("scaler", OptionalTransformer(evolved_estimator.best_params_["scaler__transformer"])),
-    ("regressor", RandomForestRegressor(
-        n_estimators=evolved_estimator.best_params_["regressor__n_estimators"],
-        max_depth=evolved_estimator.best_params_["regressor__max_depth"],
-        min_samples_split=evolved_estimator.best_params_["regressor__min_samples_split"],
-        min_samples_leaf=evolved_estimator.best_params_["regressor__min_samples_leaf"],
-        max_features=evolved_estimator.best_params_["regressor__max_features"],
-        bootstrap=evolved_estimator.best_params_["regressor__bootstrap"],
-        random_state=42
-    ))
-])
+final_model = Pipeline(
+    [
+        (
+            "imputer",
+            OptionalTransformer(evolved_estimator.best_params_["imputer__transformer"]),
+        ),
+        (
+            "scaler",
+            OptionalTransformer(evolved_estimator.best_params_["scaler__transformer"]),
+        ),
+        (
+            "regressor",
+            RandomForestRegressor(
+                n_estimators=evolved_estimator.best_params_["regressor__n_estimators"],
+                max_depth=evolved_estimator.best_params_["regressor__max_depth"],
+                min_samples_split=evolved_estimator.best_params_[
+                    "regressor__min_samples_split"
+                ],
+                min_samples_leaf=evolved_estimator.best_params_[
+                    "regressor__min_samples_leaf"
+                ],
+                max_features=evolved_estimator.best_params_["regressor__max_features"],
+                bootstrap=evolved_estimator.best_params_["regressor__bootstrap"],
+                random_state=42,
+            ),
+        ),
+    ]
+)
 final_model.fit(X, y)
 model = final_model
 

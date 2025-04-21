@@ -62,8 +62,12 @@ X_train, X_test, y_train, y_test = train_test_split(
 # In[2]:
 
 
-mutation_adapter = ExponentialAdapter(initial_value=0.8, end_value=0.2, adaptive_rate=0.1)
-crossover_adapter = ExponentialAdapter(initial_value=0.2, end_value=0.8, adaptive_rate=0.1)
+mutation_adapter = ExponentialAdapter(
+    initial_value=0.8, end_value=0.2, adaptive_rate=0.1
+)
+crossover_adapter = ExponentialAdapter(
+    initial_value=0.2, end_value=0.8, adaptive_rate=0.1
+)
 
 param_grid = {
     "n_estimators": Integer(160, 280),
