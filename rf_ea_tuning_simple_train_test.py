@@ -2,7 +2,7 @@
 # coding: utf-8
 
 # RUN WITH:
-# caffeinate python rf_ea_tuning.py | tee ea_tuned.log
+# caffeinate python rf_ea_tuning_simple_train_test.py | tee ea_tuned.log
 
 # In[2]:
 
@@ -15,15 +15,14 @@ import joblib
 import pandas as pd
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import root_mean_squared_error
-from sklearn.model_selection import KFold, train_test_split
+from sklearn.model_selection import train_test_split
 from sklearn_genetic import GASearchCV, ExponentialAdapter
 from sklearn_genetic.space import Integer, Categorical
 
 warnings.filterwarnings("ignore", message=".*ChildProcessError.*")
 
 
-test_split_size = 0.05
-k_fold = 3
+test_split_size = 0.25
 # In[4]:
 
 
@@ -80,7 +79,7 @@ param_grid = {
 }
 
 rf = RandomForestRegressor(random_state=42)
-cv = KFold(n_splits=k_fold, shuffle=True, random_state=42)
+cv = 2
 
 evolved_estimator = GASearchCV(
     estimator=rf,
@@ -122,7 +121,7 @@ print(importances.sort_values(ascending=False))
 # In[ ]:
 
 
-model_path = Path("./models/rf_ga_tuned_fst_model_bundle.pkl")
+model_path = Path("./models/rf_ga_tuned_fst_model_simple_train_test_bundle.pkl")
 
 
 # In[ ]:
@@ -136,7 +135,6 @@ model_bundle = {
     "test_size": test_split_size,
     "best_params": evolved_estimator.best_params_,
     "param_grid": param_grid,
-    "nfolds": k_fold,
     "metadata": {
         "trained_on": str(datetime.datetime.now()),
         "model_type": "RandomForestRegressor",
