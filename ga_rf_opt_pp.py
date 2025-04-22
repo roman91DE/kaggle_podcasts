@@ -65,12 +65,12 @@ pipeline = Pipeline(
     ]
 )
 
-mutation_adapter = ExponentialAdapter(
-    initial_value=0.8, end_value=0.2, adaptive_rate=0.1
-)
-crossover_adapter = ExponentialAdapter(
-    initial_value=0.2, end_value=0.8, adaptive_rate=0.1
-)
+# mutation_adapter = ExponentialAdapter(
+#     initial_value=0.8, end_value=0.2, adaptive_rate=0.1
+# )
+# crossover_adapter = ExponentialAdapter(
+#     initial_value=0.2, end_value=0.8, adaptive_rate=0.1
+# )
 
 param_grid = {
     "imputer__transformer": Categorical(
@@ -98,10 +98,10 @@ evolved_estimator = GASearchCV(
     param_grid=param_grid,
     n_jobs=-1,
     verbose=True,
-    population_size=24,
+    population_size=30,
     generations=8,
-    mutation_probability=mutation_adapter,
-    crossover_probability=crossover_adapter,
+    mutation_probability=0.1,
+    crossover_probability=0.8,
 )
 
 cbs = [
@@ -153,7 +153,7 @@ final_model = Pipeline(
 final_model.fit(X, y)
 model = final_model
 
-model_path = Path("./models/rf_ga_tuned_fst_model_with_pipeline.pkl")
+model_path = Path("./models/rf_ga_tuned_fst_model_with_pipeline_fixed_prob.pkl")
 
 model_bundle = {
     "model": model,
